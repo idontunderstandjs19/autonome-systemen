@@ -26,33 +26,46 @@ class Policy():
 
 
     def value_iteration(self):
+        print("Iteration: ", self.iteration)
+        print("value_grid: ", self.value_grid)
+        threshold = 0.01
+        delta = 1
         rows, cols = self.reward_list.shape
-        new_values = np.copy(self.value_grid)
+        old_values = np.zeros([4,4])
+        while delta > threshold:
+            new_values = np.copy(old_values)
+            delta = 0
+            for i in range(rows):
+                for j in range(cols):
+                    if [i, j] in self.maze.terminal_states:
+                        continue  # Skip terminal states
+                    
+                    # Calculate value for each possible action
+                    values = []
+                    if i > 0:
+                        values.append(self.reward_list[i-1, j] + self.discount_factor * old_values[i-1, j])
+                        delta = max(delta, abs(old_values[i-1, j] - new_values[i-1, j]))
+                    if i < rows - 1:
+                        values.append(self.reward_list[i+1, j] + self.discount_factor * old_values[i+1, j])
+                        delta = max(delta, abs(old_values[i+1, j] - new_values[i+1, j]))
+                    if j > 0:
+                        values.append(self.reward_list[i, j-1] + self.discount_factor * old_values[i, j-1])
+                        delta = max(delta, abs(old_values[i, j-1] - new_values[i, j-1]))
+                    if j < cols - 1:
+                        values.append(self.reward_list[i, j+1] + self.discount_factor * old_values[i, j+1])
+                        delta = max(delta, abs(old_values[i, j+1] - new_values[i, j+1]))
 
-        for i in range(rows):
-            for j in range(cols):
-                if [i, j] in self.maze.terminal_states:
-                    continue  # Sla de eindstaten over
+                    # Find the maximum value
+                    max_value = max(values) if values else 0
+                    new_values[i, j] = max_value
 
-                values = []
-                if i > 0:
-                    values.append(self.reward_list[i-1, j] + self.discount_factor * self.value_grid[i-1, j])
-                if i < rows - 1:
-                    values.append(self.reward_list[i+1, j] + self.discount_factor * self.value_grid[i+1, j])
-                if j > 0:
-                    values.append(self.reward_list[i, j-1] + self.discount_factor * self.value_grid[i, j-1])
-                if j < cols - 1:
-                    values.append(self.reward_list[i, j+1] + self.discount_factor * self.value_grid[i, j+1])
+            # Copy new values back into the main value grid
+            self.value_grid = new_values
+            old_values = new_values
 
-                max_value = max(values) if values else 0
-                new_values[i, j] = max_value
-
-        for i in range(rows):
-            for j in range(cols):
-                if (i, j) not in self.maze.terminal_states:
-                    self.value_grid[i, j] = new_values[i, j]
-
-        self.iteration += 1
+            self.iteration += 1
+            print("Iteration: ", self.iteration)
+            print("value_grid: ", self.value_grid)
 
 
     def get_next_state(self, state, action):
@@ -77,6 +90,8 @@ class Policy():
     
         for state in self.all_states:
             if state in self.maze.terminal_states:
+                self.policy[tuple(state)] = None
+
                 continue
 
             max_value = float("-inf")
@@ -98,6 +113,12 @@ class Policy():
         actions = ["up", "down", "left", "right"]
         start_policy = {tuple(state): random.choice(actions) for state in self.all_states}
         return start_policy
+    
+    
+    def proof(self):
+        for key,value in self.policy.items():
+            print(f"locatie: {key} reward: {self.reward_list[key]} value: {self.value_grid[key]} policy: {value}")
+            
     
         
     def print_interation(self):

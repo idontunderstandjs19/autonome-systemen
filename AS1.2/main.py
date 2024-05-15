@@ -8,6 +8,10 @@ def main():
     maze = Maze()
     policy = Policy(maze)
     agent = Agent(maze, policy)
+    agent.moving_agent()
+    policy.proof()
+
+    print("Gefeliciteerd, het spel heeft de optimale pad bewandeld")
     
 
 if __name__ == "__main__":

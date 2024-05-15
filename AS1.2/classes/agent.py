@@ -1,5 +1,6 @@
 from classes.maze import Maze
 from classes.policy import Policy
+import numpy as np
 import time
 
 class Agent():
@@ -9,25 +10,26 @@ class Agent():
         self.policy = policy
         self.route: list = []
         self.total_reward: int = 0
-        self.move_agent() # to make the first move after iteration 0 has been settled, this is a random move based on the random start policy
+        self.policy.value_iteration()
+        self.policy.update_policy()
         self.policy.print_interation()
-        print(f"Locatie agent: {self.maze.agent_pos}")
-        self.new_move()
 
     
-    def new_move(self):
-        while True:
-            # Controleer of de agent een terminalstaat heeft bereikt
-            if self.maze.agent_pos in self.maze.terminal_states:
-                break  # Stop de loop als de agent een terminalstaat bereikt
+    def moving_agent(self):
+        test = True
 
-            # Voer een beweging uit
-            self.policy.new_iteration()
-            self.move_agent()
-            print(f"Locatie agent: {self.maze.agent_pos}")
-
-            # Wacht een seconde voordat je de volgende beweging uitvoert
+        while test:
+            # Print de huidige positie van de agent in een 4x4 grid
+            agent_grid = np.full((4, 4), ' ')
+            x, y = self.maze.agent_pos
+            agent_grid[x, y] = 'X'  # 'X' staat voor de agent
+            print(agent_grid)
+            
+            # Wacht een seconde
             time.sleep(1)
+            
+            # Beweeg de agent volgens het beleid
+            test = self.move_agent()
 
 
     def total_reward_agent(self):
@@ -37,5 +39,11 @@ class Agent():
     def move_agent(self):
         state_to_tuple = tuple(self.maze.agent_pos)
         get_direction = self.policy.policy[state_to_tuple]
-        self.maze.step(get_direction)
-        self.total_reward_agent()
+        if get_direction == None:
+            return False
+        else:
+            self.maze.step(get_direction)
+            self.total_reward_agent()
+            return True
+
+        
