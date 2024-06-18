@@ -16,6 +16,17 @@ class Policy():
         self.discount_factor = discount_factor
         self.iteration = 0
         self.policy = {tuple(state): random.choice(self.maze.actions) for state in self.all_states}
+        self.q_function = {}
+
+    
+    def update_qfunction(self, state):
+        if (state[0], state[1]) not in list(self.q_function.keys()):
+            self.q_function[state[0], state[1]] = {
+                "up": 0,
+                "down": 0,
+                "left": 0,
+                "right": 0
+            }
 
 
     def value_iteration(self):
